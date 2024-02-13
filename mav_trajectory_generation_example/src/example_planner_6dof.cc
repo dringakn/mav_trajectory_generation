@@ -9,7 +9,7 @@ ExamplePlanner::ExamplePlanner(ros::NodeHandle& nh)
       current_velocity_(Eigen::Vector3d::Zero()),
       current_angular_velocity_(Eigen::Vector3d::Zero()),
       current_pose_(Eigen::Affine3d::Identity()) {
-        
+
   // Load params
   if (!nh_.getParam(ros::this_node::getName() + "/max_v", max_v_)){
     ROS_WARN("[example_planner] param max_v not found");
@@ -23,7 +23,7 @@ ExamplePlanner::ExamplePlanner(ros::NodeHandle& nh)
   if (!nh_.getParam(ros::this_node::getName() + "/max_ang_a", max_ang_a_)){
     ROS_WARN("[example_planner] param max_ang_a not found");
   }
-        
+
   // create publisher for RVIZ markers
   pub_markers_ =
       nh.advertise<visualization_msgs::MarkerArray>("trajectory_markers", 0);
@@ -66,7 +66,7 @@ bool ExamplePlanner::planTrajectory(
   const int dimension = goal_pos.size();
   bool success = false;
 
-  if (dimension == 6) 
+  if (dimension == 6)
   {
     mav_trajectory_generation::Trajectory trajectory_trans, trajectory_rot;
 
@@ -91,15 +91,15 @@ bool ExamplePlanner::planTrajectory(
     success &= trajectory_trans.getTrajectoryWithAppendedDimension(
             trajectory_rot, &(*trajectory));
     return success;
-  } 
-  else if (dimension == 3) 
+  }
+  else if (dimension == 3)
   {
     success = planTrajectory(
         goal_pos, goal_vel, current_pose_.translation(), current_velocity_,
         max_v_, max_a_, &(*trajectory));
     return success;
-  } 
-  else if (dimension == 4) 
+  }
+  else if (dimension == 4)
   {
     Eigen::Vector4d start_pos_4d, start_vel_4d;
     start_pos_4d << current_pose_.translation(),
@@ -110,8 +110,8 @@ bool ExamplePlanner::planTrajectory(
         goal_pos, goal_vel, start_pos_4d, start_vel_4d, max_v_, max_a_,
         &(*trajectory));
     return success;
-  } 
-  else 
+  }
+  else
   {
     LOG(WARNING) << "Dimension must be 3, 4 or 6 to be valid.";
     return false;
@@ -174,10 +174,10 @@ vertices.push_back(end);
   // get trajectory as polynomial parameters
   opt.getTrajectory(&(*trajectory));
   trajectory->scaleSegmentTimesToMeetConstraints(v_max, a_max);
-  
+
   return true;
 }
-                                    
+
 
 bool ExamplePlanner::publishTrajectory(const mav_trajectory_generation::Trajectory& trajectory){
   // send trajectory as markers to display them in RVIZ

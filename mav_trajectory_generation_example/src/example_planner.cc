@@ -6,7 +6,7 @@ ExamplePlanner::ExamplePlanner(ros::NodeHandle& nh) :
     max_a_(2.0),
     current_velocity_(Eigen::Vector3d::Zero()),
     current_pose_(Eigen::Affine3d::Identity()) {
-      
+
   // Load params
   if (!nh_.getParam(ros::this_node::getName() + "/max_v", max_v_)){
     ROS_WARN("[example_planner] param max_v not found");
@@ -31,6 +31,7 @@ ExamplePlanner::ExamplePlanner(ros::NodeHandle& nh) :
 // Callback to get current Pose of UAV
 void ExamplePlanner::uavOdomCallback(const nav_msgs::Odometry::ConstPtr& odom) {
 
+  std::cout<< "done"<<std::endl;
   // store current position in our planner
   tf::poseMsgToEigen(odom->pose.pose, current_pose_);
 
@@ -112,6 +113,66 @@ bool ExamplePlanner::planTrajectory(const Eigen::VectorXd& goal_pos,
 
   // get trajectory as polynomial parameters
   opt.getTrajectory(&(*trajectory));
+
+  return true;
+}
+
+// Plans a trajectory from a start position and velocity to a goal position and velocity
+bool ExamplePlanner::planTrajectory(const Eigen::VectorXd& goal_pos,
+                                    const Eigen::VectorXd& goal_vel,
+                                    const Eigen::VectorXd& start_pos,
+                                    const Eigen::VectorXd& start_vel,
+                                    double v_max, double a_max,
+                                    mav_trajectory_generation::Trajectory* trajectory) {
+  assert(trajectory);
+  const int dimension = goal_pos.size();
+  // Array for all waypoints and their constraints
+  mav_trajectory_generation::Vertex::Vector vertices;
+
+  // Optimze up to 4th order derivative (SNAP)
+  const int derivative_to_optimize =
+      mav_trajectory_generation::derivative_order::SNAP;
+
+  // we have 2 vertices:
+  // start = desired start vector
+  // end = desired end vector
+  mav_trajectory_generation::Vertex start(dimension), end(dimension);
+
+  /******* Configure start point *******/
+  start.makeStartOrEnd(start_pos, derivative_to_optimize);
+  start.addConstraint(mav_trajectory_generation::derivative_order::VELOCITY,
+                      start_vel);
+  vertices.push_back(start);
+
+  /******* Configure end point *******/
+  // set end point constraints to desired position and set all derivatives to zero
+  end.makeStartOrEnd(goal_pos, derivative_to_optimize);
+  end.addConstraint(mav_trajectory_generation::derivative_order::VELOCITY,
+                    goal_vel);
+vertices.push_back(end);
+
+  // setimate initial segment times
+  std::vector<double> segment_times;
+  segment_times = estimateSegmentTimes(vertices, v_max, a_max);
+
+  // Set up polynomial solver with default params
+  mav_trajectory_generation::NonlinearOptimizationParameters parameters;
+
+  // set up optimization problem
+  const int N = 10;
+  mav_trajectory_generation::PolynomialOptimizationNonLinear<N> opt(dimension, parameters);
+  opt.setupFromVertices(vertices, segment_times, derivative_to_optimize);
+
+  // constrain velocity and acceleration
+  opt.addMaximumMagnitudeConstraint(mav_trajectory_generation::derivative_order::VELOCITY, v_max);
+  opt.addMaximumMagnitudeConstraint(mav_trajectory_generation::derivative_order::ACCELERATION, a_max);
+
+  // solve trajectory
+  opt.optimize();
+
+  // get trajectory as polynomial parameters
+  opt.getTrajectory(&(*trajectory));
+  trajectory->scaleSegmentTimesToMeetConstraints(v_max, a_max);
 
   return true;
 }

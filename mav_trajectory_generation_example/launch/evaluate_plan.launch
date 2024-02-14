@@ -46,7 +46,9 @@
     <node pkg="gazebo_ros" type="spawn_model" name="spawn_model" output="screen" args="$(arg spawn_model_args)"/>
 
     <!-- Keyboard -->
-    <include file="$(find gazebo_simulation)/launch/keyboard.launch" />
+    <node pkg="teleop_twist_keyboard" type="teleop_twist_keyboard.py" name="teleop_twist_keyboard" required="true" launch-prefix="xterm -e">
+        <remap from="/cmd_vel" to="/keyboard/cmd_vel"/>
+    </node>
 
     <!--- Trajectory planner -->
     <node name="planner" pkg="mav_trajectory_generation_example" type="example_evaluate_plan" output="screen" required="true">

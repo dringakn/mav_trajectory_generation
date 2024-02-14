@@ -10,9 +10,8 @@
 #include <mav_trajectory_generation_ros/ros_visualization.h>
 #include <mav_trajectory_generation_ros/ros_conversions.h>
 
-// implement the controller to generate V/W for diff robot gazebo simulator.
-// evaluate the plan and show the results.
-// use teleop to mix the inputs.
+// implement a pursuit controller to generate V/W for a differential drive robot, given the trajectory position and
+// velocity. Additionally, use teleop inputs to mix the controls.
 
 class MyNode
 {
@@ -20,6 +19,7 @@ public:
   MyNode() : nh_("~"), loop_rate_(50)
   {
     odom_sub_ = nh_.subscribe("odom", 10, &MyNode::odomCallback, this);
+    keyboard_sub_ = nh_.subscribe("keyboard_cmd", 10, &MyNode::keyboardControlCallback, this);
     cmd_vel_pub_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 10);
     path_pub_ = nh_.advertise<nav_msgs::Path>("waypoints", 10, true);
     trajectory_pub_ = nh_.advertise<mav_planning_msgs::PolynomialTrajectory4D>("trajectory", 10, true);
@@ -28,10 +28,10 @@ public:
     max_linear_velocity = 1.0;
     max_linear_acceleration = 1.0;
     initialize_edges();
-    polygon_vertices_.push_back(Point{ -10, -10 });
-    polygon_vertices_.push_back(Point{ 10, -10 });
-    polygon_vertices_.push_back(Point{ 10, 10 });
-    polygon_vertices_.push_back(Point{ -10, 10 });
+    polygon_vertices_.push_back(Point{ -5, -5 });
+    polygon_vertices_.push_back(Point{ 5, -5 });
+    polygon_vertices_.push_back(Point{ 5, 5 });
+    polygon_vertices_.push_back(Point{ -5, 5 });
     for (size_t i = 0; i < polygon_vertices_.size(); ++i)
     {
       Edge edge;
@@ -42,7 +42,7 @@ public:
     geometry_msgs::PoseStamped pose;
     path.header.stamp = ros::Time::now();
     path.header.frame_id = "odom";
-    for (uint64_t idx = 0; idx < 20; idx++)
+    for (uint64_t idx = 0; idx < 10; idx++)
     {
       size_t edge_index = rand() % polygon_edges_.size();
       const Edge& edge = polygon_edges_[edge_index];
@@ -68,11 +68,19 @@ public:
   void odomCallback(const nav_msgs::Odometry::ConstPtr& odom_msg)
   {
     odom_msg_ = *odom_msg;
-    std::cout << std::fixed << std::showpos << std::setprecision(2) << std::setw(3) << std::setfill(' ')
-              << "Odom: pos[" << odom_msg_.pose.pose.position.x << ", " << odom_msg_.pose.pose.position.y << ", "
+    std::cout << std::fixed << std::showpos << std::setprecision(2) << std::setw(3) << std::setfill(' ') << "Odom: pos["
+              << odom_msg_.pose.pose.position.x << ", " << odom_msg_.pose.pose.position.y << ", "
               << odom_msg_.pose.pose.position.z << "]"
               << ", vel[" << odom_msg_.twist.twist.linear.x << ", " << odom_msg_.twist.twist.linear.y << ", "
               << odom_msg_.twist.twist.linear.z << "]" << std::endl;
+  }
+
+  void keyboardControlCallback(const geometry_msgs::Twist::ConstPtr& msg)
+  {
+    keyboard_msg_ = *msg;
+    std::cout << std::fixed << std::showpos << std::setprecision(2) << std::setw(3) << std::setfill(' ')
+              << "Keyboard: V[" << keyboard_msg_.linear.x << ", " << keyboard_msg_.linear.y << "], W["
+              << keyboard_msg_.angular.z << "]" << std::endl;
   }
 
   void publishCmdVel()
@@ -99,8 +107,9 @@ private:
   ros::NodeHandle nh_;
   ros::Rate loop_rate_;
   nav_msgs::Odometry odom_msg_;
+  geometry_msgs::Twist keyboard_msg_;
   nav_msgs::Path path;
-  ros::Subscriber odom_sub_;
+  ros::Subscriber odom_sub_, keyboard_sub_;
   ros::Publisher cmd_vel_pub_, path_pub_, trajectory_pub_, markers_pub_;
 
   mav_trajectory_generation::Trajectory trajectory;             // Output trajectory

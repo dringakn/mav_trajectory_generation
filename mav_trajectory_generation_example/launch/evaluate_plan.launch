@@ -50,6 +50,8 @@
 
     <!--- Trajectory planner -->
     <node name="planner" pkg="mav_trajectory_generation_example" type="example_evaluate_plan" output="screen" required="true">
+        <remap from="/planner/cmd_vel" to="/cmd_vel"/>
+        <remap from="/planner/odom" to="/odom"/>
     </node>
 
     <!--- Trajectory sampler -->

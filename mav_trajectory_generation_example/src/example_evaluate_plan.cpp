@@ -1,13 +1,12 @@
-// #include <ros/ros.h>
-#include "ros/ros.h"
+#include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/Twist.h>
 #include <visualization_msgs/MarkerArray.h>
 
-#include "mav_trajectory_generation/polynomial_optimization_linear.h"
-#include "mav_trajectory_generation/polynomial_optimization_nonlinear.h"
-#include "mav_trajectory_generation/trajectory.h"
+#include <mav_trajectory_generation/polynomial_optimization_linear.h>
+#include <mav_trajectory_generation/polynomial_optimization_nonlinear.h>
+#include <mav_trajectory_generation/trajectory.h>
 #include <mav_trajectory_generation_ros/ros_visualization.h>
 #include <mav_trajectory_generation_ros/ros_conversions.h>
 
@@ -20,7 +19,7 @@ class MyNode
 public:
   MyNode() : nh_("~"), loop_rate_(50)
   {
-    odom_sub_ = nh_.subscribe("odometry", 10, &MyNode::odomCallback, this);
+    odom_sub_ = nh_.subscribe("odom", 10, &MyNode::odomCallback, this);
     cmd_vel_pub_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 10);
     path_pub_ = nh_.advertise<nav_msgs::Path>("waypoints", 10, true);
     trajectory_pub_ = nh_.advertise<mav_planning_msgs::PolynomialTrajectory4D>("trajectory", 10, true);
@@ -68,8 +67,12 @@ public:
 
   void odomCallback(const nav_msgs::Odometry::ConstPtr& odom_msg)
   {
-    // Store the odometry message in the member variable
     odom_msg_ = *odom_msg;
+    std::cout << std::fixed << std::showpos << std::setprecision(2) << std::setw(3) << std::setfill(' ')
+              << "Odom: pos[" << odom_msg_.pose.pose.position.x << ", " << odom_msg_.pose.pose.position.y << ", "
+              << odom_msg_.pose.pose.position.z << "]"
+              << ", vel[" << odom_msg_.twist.twist.linear.x << ", " << odom_msg_.twist.twist.linear.y << ", "
+              << odom_msg_.twist.twist.linear.z << "]" << std::endl;
   }
 
   void publishCmdVel()
@@ -78,8 +81,8 @@ public:
     {
       geometry_msgs::Twist cmd_vel_msg;
 
-      cmd_vel_msg.linear.x = odom_msg_.twist.twist.linear.x;
-      cmd_vel_msg.angular.z = odom_msg_.twist.twist.angular.z;
+      cmd_vel_msg.linear.x = 0.0;
+      cmd_vel_msg.angular.z = 0.0;
 
       cmd_vel_pub_.publish(cmd_vel_msg);
 

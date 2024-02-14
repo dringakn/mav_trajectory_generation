@@ -49,7 +49,7 @@
     <include file="$(find gazebo_simulation)/launch/keyboard.launch" />
 
     <!--- Trajectory planner -->
-    <node name="planner" pkg="mav_trajectory_generation_example" type="example_evaluate_plan" output="screen">
+    <node name="planner" pkg="mav_trajectory_generation_example" type="example_evaluate_plan" output="screen" required="true">
     </node>
 
     <!--- Trajectory sampler -->

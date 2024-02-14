@@ -47,7 +47,7 @@
 
     <!-- Keyboard -->
     <node pkg="teleop_twist_keyboard" type="teleop_twist_keyboard.py" name="teleop_twist_keyboard" required="true" launch-prefix="xterm -e">
-        <remap from="/cmd_vel" to="/keyboard/cmd_vel"/>
+        <remap from="/cmd_vel" to="/planner/keyboard_cmd"/>
     </node>
 
     <!--- Trajectory planner -->

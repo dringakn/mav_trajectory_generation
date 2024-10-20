@@ -1,0 +1,166 @@
+{
+  "max_linear_velocity": 1.0,
+  "max_linear_acceleration": 1.0,
+  "max_angular_velocity": 1.57,
+  "max_angular_acceleration": 1.57,
+  "derivative_to_optimize": 4,
+  "header": {
+    "stamp": {
+      "sec": 1637190321,
+      "nanosec": 123456789
+    },
+    "frame_id": "map"
+  },
+  "poses": [
+    {
+      "pose": {
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 60
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7071,
+          "w": 0.7071
+        }
+      }
+    },
+    {
+      "pose": {
+        "position": {
+          "x": 0,
+          "y": 25,
+          "z": 65
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7071,
+          "w": 0.7071
+        }
+      }
+    },
+    {
+      "pose": {
+        "position": {
+          "x": 0,
+          "y": 50,
+          "z": 70
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7071,
+          "w": 0.7071
+        }
+      }
+    },
+    {
+      "pose": {
+        "position": {
+          "x": 25,
+          "y": 50,
+          "z": 65
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7071,
+          "w": 0.7071
+        }
+      }
+    },
+    {
+      "pose": {
+        "position": {
+          "x": 50,
+          "y": 50,
+          "z": 60
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7071,
+          "w": 0.7071
+        }
+      }
+    },
+    {
+      "pose": {
+        "position": {
+          "x": 50,
+          "y": 25,
+          "z": 65
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7071,
+          "w": 0.7071
+        }
+      }
+    },
+    {
+      "pose": {
+        "position": {
+          "x": 50,
+          "y": 0,
+          "z": 70
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7071,
+          "w": 0.7071
+        }
+      }
+    },
+    {
+      "pose": {
+        "position": {
+          "x": 25,
+          "y": 0,
+          "z": 65
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7071,
+          "w": 0.7071
+        }
+      }
+    },
+    {
+      "pose": {
+        "position": {
+          "x": 0.1,
+          "y": 0,
+          "z": 60
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7071,
+          "w": 0.7071
+        }
+      }
+    },
+    {
+      "pose": {
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 60
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7071,
+          "w": 0.7071
+        }
+      }
+    }
+  ]
+}

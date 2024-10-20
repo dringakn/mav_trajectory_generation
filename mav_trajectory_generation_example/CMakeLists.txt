@@ -24,6 +24,10 @@ cs_add_executable(example_evaluate_plan
         src/example_evaluate_plan.cpp
 )
 
+cs_add_executable(example_planner4d
+        src/example_planner4d.cpp
+)
+
 ##########
 # EXPORT #
 ##########

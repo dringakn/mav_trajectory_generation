@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+
+    <node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find mav_trajectory_generation_example)/rviz/example_planner4d.rviz"/>
+
+    <node name="map_world_static_tf" pkg="tf" type="static_transform_publisher" output="screen" args="0 0 0 0 0 0 'map' 'world' 100"/>
+
+    <node name="example_planner4d" pkg="mav_trajectory_generation_example" type="example_planner4d" output="screen"/>
+
+    <node name="rostopic" pkg="rostopic" type="rostopic" output="screen" args="pub -1 /example_planner4d/waypoints_file_path std_msgs/String -f $(find mav_trajectory_generation_example)/data/filename.yaml"/>
+    
+
+</launch>

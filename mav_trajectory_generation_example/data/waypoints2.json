@@ -9,7 +9,7 @@
         "sec": 1637190321,
         "nanosec": 123456789
       },
-      "frame_id": "map"
+      "frame_id": "world"
     },
     "poses": [
       {

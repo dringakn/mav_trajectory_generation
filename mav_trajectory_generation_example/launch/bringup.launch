@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- Launch Gazebo -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch"/>
+    
+    <!-- Spawn simple_drone_manager and load URDF -->
+    <include file="$(find uav_gazebo)/launch/spawn.launch"/>
+    
+    <!-- Call the service to take off -->
+    <node name="take_off_service" pkg="rosservice" type="rosservice" args="call --wait /drone/takeoff '{force_takeoff: true, height: 6.0, takeoff_time: 0.0, idle_time: 0.0}'" />
+    
+    <!-- 
+    Call the service to switch the mode:
+    INACTIVE = 0
+    POSITION_YAW = 1
+    VELOCITY_YAWRATE = 2
+    THRUST_ATTITUDE = 3
+    THRUST_VELOCITY = 4
+    THRUST_TORQUE = 5    
+     -->
+    <node name="switch_mode_service" pkg="rosservice" type="rosservice" args="call --wait /drone/switch_mode '{mode: {mode: 2}}'" />
+
+    <!-- MAV Trajectory Planner -->
+    <node name="example_planner4d" pkg="mav_trajectory_generation_example" type="example_planner4d" output="screen"/>
+
+    <!-- Load sample mission -->
+    <node name="rostopic" pkg="rostopic" type="rostopic" output="screen" args="pub -1 /example_planner4d/waypoints_file_path std_msgs/String -f $(find mav_trajectory_generation_example)/data/filename.yaml"/>
+
+    <!-- Launch RViz -->
+    <node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find mav_trajectory_generation_example)/rviz/bringup.rviz"/>
+    
+    <!-- Static TF map- -->
+    <node name="map_world_static_tf" pkg="tf" type="static_transform_publisher" output="screen" args="0 0 0 0 0 0 'map' 'world' 100"/>
+    
+
+</launch>

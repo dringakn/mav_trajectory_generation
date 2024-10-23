@@ -79,7 +79,7 @@ public:
     // std::cout << std::fixed << std::showpos << std::setprecision(2) << std::setw(3) << std::setfill(' ') << "Odom:
     // pos["
     //           << odom_msg_.pose.pose.position.x << ", " << odom_msg_.pose.pose.position.y << ", "
-    //           << odom_msg_.pose.pose.position.z << "]"
+    //           << odom_msg_.pose.pose.position.z <<goal_pos "]"
     //           << ", vel[" << odom_msg_.twist.twist.linear.x << ", " << odom_msg_.twist.twist.linear.y << ", "
     //           << odom_msg_.twist.twist.linear.z << "]" << std::endl;
   }

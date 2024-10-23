@@ -26,7 +26,7 @@ ExamplePlanner::ExamplePlanner(ros::NodeHandle& nh)
 
   // create publisher for RVIZ markers
   pub_markers_ =
-      nh.advertise<visualization_msgs::MarkerArray>("trajectory_markers", 0);
+      nh.advertise<visualization_msgs::MarkerArray>("trajectory_markers", 0, true);
 
   pub_trajectory_ =
       nh.advertise<mav_planning_msgs::PolynomialTrajectory>("trajectory",

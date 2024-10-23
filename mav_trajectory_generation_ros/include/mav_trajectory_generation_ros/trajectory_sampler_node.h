@@ -22,7 +22,6 @@
 #define TRAJECTORY_SAMPLER_NODE_H
 
 #include <mav_msgs/conversions.h>
-#include <mav_msgs/default_topics.h>
 #include <mav_msgs/eigen_mav_msgs.h>
 #include <mav_planning_msgs/PolynomialSegment.h>
 #include <mav_planning_msgs/PolynomialTrajectory.h>

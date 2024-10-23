@@ -30,9 +30,11 @@ TrajectorySamplerNode::TrajectorySamplerNode(const ros::NodeHandle& nh,
   nh_private_.param("publish_whole_trajectory", publish_whole_trajectory_,
                     publish_whole_trajectory_);
   nh_private_.param("dt", dt_, dt_);
+  ROS_INFO("publish_whole_trajectory: %d",publish_whole_trajectory_);
+  ROS_INFO("dt: %5.2f",dt_);
 
   command_pub_ = nh_.advertise<trajectory_msgs::MultiDOFJointTrajectory>(
-      mav_msgs::default_topics::COMMAND_TRAJECTORY, 1);
+      "command/trajectory", 1);
   trajectory_sub_ = nh_.subscribe(
       "path_segments", 10, &TrajectorySamplerNode::pathSegmentsCallback, this);
   trajectory4D_sub_ = nh_.subscribe(

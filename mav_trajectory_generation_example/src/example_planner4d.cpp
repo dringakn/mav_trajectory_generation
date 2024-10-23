@@ -33,8 +33,8 @@ public:
     waypoints_file_path_sub = nh_.subscribe("waypoints_file_path", 10, &MyNode::waypointsFileNameCallback, this);
     waypoints_sub_ = nh_.subscribe("waypoints_in", 10, &MyNode::waypointsCallback, this);
     waypoints_pub_ = nh_.advertise<nav_msgs::Path>("waypoints_out", 10, true);
-    trajectory_pub_ = nh_.advertise<mav_planning_msgs::PolynomialTrajectory4D>("trajectory", 10, true);
-    trajectory_markers_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("trajectory_markers", 10, true);
+    trajectory_pub_ = nh_.advertise<mav_planning_msgs::PolynomialTrajectory4D>("trajectory4d", 10, true);
+    trajectory_markers_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("trajectory4d_markers", 10, true);
   }
 
   /**
@@ -326,7 +326,7 @@ private:
    */
   void publishTrajectory(const mav_trajectory_generation::Trajectory& trajectory,
                          double distance = 1.0,
-                         std::string frame_id = "map")
+                         std::string frame_id = "world")
   {
     // send trajectory as markers to display them in RVIZ
     visualization_msgs::MarkerArray markers;
@@ -338,7 +338,7 @@ private:
     trajectory_markers_pub_.publish(markers);
 
     // Publish trajectory to be executed
-    mav_planning_msgs::PolynomialTrajectory msg;
+    mav_planning_msgs::PolynomialTrajectory4D msg;
     mav_trajectory_generation::trajectoryToPolynomialTrajectoryMsg(trajectory, 
                                                                    &msg);
     msg.header.frame_id = frame_id;
@@ -373,11 +373,16 @@ private:
       trajectory_length += std::hypot(velocity[0], velocity[1]) * dt;  // Assuming a constant step size
 
       // Print debug information
-      std::cout << std::fixed << std::showpos << std::setprecision(2) << std::setw(3) << std::setfill(' ') << "T: " << t
-                << "\t"
+      std::cout << std::fixed 
+                << std::showpos 
+                << std::setprecision(2) 
+                << std::setw(3) 
+                << std::setfill(' ') 
+                << "T: " << t << "\t"
                 << "L: " << trajectory_length << "\t"
                 << "V: " << std::hypot(velocity[0], velocity[1]) << "\t"
-                << "A: " << std::hypot(acceleration[0], acceleration[1]) << std::endl;
+                << "A: " << std::hypot(acceleration[0], acceleration[1]) 
+                << std::endl;
     }
 
     return trajectory_length;

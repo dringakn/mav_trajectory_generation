@@ -90,7 +90,7 @@ Visualization Manager:
           Value: true
         Value: true
       Enabled: true
-      Keep: 100
+      Keep: 1000
       Name: Odometry
       Position Tolerance: 0.10000000149011612
       Queue Size: 10
@@ -170,7 +170,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 83.30268859863281
+      Distance: 90.84771728515625
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -186,9 +186,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5453984141349792
+      Pitch: 0.9403984546661377
       Target Frame: drone
-      Yaw: 6.118581295013428
+      Yaw: 4.808573246002197
     Saved: ~
 Window Geometry:
   Displays:

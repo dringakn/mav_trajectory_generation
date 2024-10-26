@@ -67,12 +67,12 @@ class DummyController:
 
         # Publisher
         self.pub = rospy.Publisher(
-            f"drone/{topic_suffix}/command", self.msg_type, queue_size=1
+            f"/drone/{topic_suffix}/command", self.msg_type, queue_size=1
         )
 
         # Trajectory subscriber
         self.sub = rospy.Subscriber(
-            "command/trajectory", MultiDOFJointTrajectory, self.trajectory_callback
+            "/command/trajectory", MultiDOFJointTrajectory, self.trajectory_callback
         )
 
         # Set up shutdown handler

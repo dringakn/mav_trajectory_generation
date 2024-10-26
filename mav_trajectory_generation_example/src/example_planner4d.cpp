@@ -301,15 +301,15 @@ private:
     optimizer.getTrajectory(&trajectory);
     // trajectory.scaleSegmentTimesToMeetConstraints(max_linear_velocity_, max_linear_acceleration_);
     auto traj_length = getTrajectoryLength(trajectory, 0.5);
-    std::cout << "Optimization took " << elapsedTime << " seconds" << std::endl;
+    std::cout << "Optimization took " << elapsedTime << " sec" << std::endl;
     std::cout << "Derivative to optimize: " << this->derivative_to_optimize_ << std::endl;
-    std::cout << "Max linear velocity: " << this->max_linear_velocity_ << "m/sec" << std::endl;
-    std::cout << "Max angular velocity: " << R2D(this->max_angular_velocity_) << "deg/sec" << std::endl;
-    std::cout << "Max linear acceleration: " << this->max_linear_acceleration_ << "m/sec^2" << std::endl;
-    std::cout << "Max angular acceleration: " << R2D(this->max_angular_acceleration_) << "deg/sec^2" << std::endl;
-    std::cout << "Trajectory execution time: " << trajectory.getMaxTime() << " seconds" << std::endl;
+    std::cout << "Max linear velocity: " << this->max_linear_velocity_ << " m/sec" << std::endl;
+    std::cout << "Max angular velocity: " << R2D(this->max_angular_velocity_) << " °/sec" << std::endl;
+    std::cout << "Max linear acceleration: " << this->max_linear_acceleration_ << " m/sec^2" << std::endl;
+    std::cout << "Max angular acceleration: " << R2D(this->max_angular_acceleration_) << " °/sec^2" << std::endl;
+    std::cout << "Trajectory execution time: " << trajectory.getMaxTime() << " sec" << std::endl;
     std::cout << "Trajectory segments:" << trajectory.segments().size() << std::endl;
-    std::cout << "Trajectory length: " << traj_length << " meters" << std::endl;
+    std::cout << "Trajectory length: " << traj_length << " m" << std::endl;
     if (trajectory.empty())
     {
       return false;

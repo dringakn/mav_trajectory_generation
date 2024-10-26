@@ -2,7 +2,9 @@
 <launch>
 
     <!-- Launch Gazebo -->
-    <include file="$(find gazebo_ros)/launch/empty_world.launch"/>
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="gui" value="false"/>
+    </include>
     
     <!-- Spawn simple_drone_manager and load URDF -->
     <include file="$(find uav_gazebo)/launch/spawn.launch"/>

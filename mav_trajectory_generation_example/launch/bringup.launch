@@ -54,9 +54,13 @@
 
     <!-- Dummy Trajectory Controller -->
     <node name="dummy_controller" pkg="mav_trajectory_generation_example" type="dummy_controller.py" output="screen">
+        <!-- Parameters -->
+        <param name="drone_mass" value="1.0"/>
+        <!-- PositionYawControl, VelocityYawRateControl, ThrustTorqueControl, ThrustVelocityControl, ThrustAttitudeControl -->
+        <param name="control_output_type" value="PositionYawControl"/>
         <!-- Input topics -->
         <remap from="command/trajectory" to="/command/trajectory"/>
-        <!-- Output topics -->
+        <!-- Output topics (depends on control_output_type) -->
         <remap from="drone/position_yaw/command" to="/drone/position_yaw/command"/>        
     </node>
     

@@ -296,6 +296,7 @@ private:
     optimizer.optimize();
     auto endTime = ros::Time::now();  // Stop the timer
     auto elapsedTime = (endTime - startTime).toSec();
+
     trajectory.clear();
     optimizer.getTrajectory(&trajectory);
     // trajectory.scaleSegmentTimesToMeetConstraints(max_linear_velocity_, max_linear_acceleration_);

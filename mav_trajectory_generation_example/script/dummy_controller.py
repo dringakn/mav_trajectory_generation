@@ -108,24 +108,42 @@ class DummyController:
             rospy.logerr(f"Error in trajectory_callback: {e}")
 
     def extract_data_from_msg(self, msg):
+        if not msg.points:
+            rospy.logerr("Received trajectory message with no points.")
+            return None
+
+        point = msg.points[0]
+
+        if not point.transforms:
+            rospy.logerr("Trajectory point has no transforms.")
+            return None
+
+        if not point.velocities:
+            rospy.logerr("Trajectory point has no velocities.")
+            return None
+
+        if not point.accelerations:
+            rospy.logerr("Trajectory point has no accelerations.")
+            return None
+
         # Extract position
-        position = msg.points[0].transforms[0].translation
+        position = point.transforms[0].translation
 
         # Extract quaternion and convert to Euler angles
-        rotation = msg.points[0].transforms[0].rotation
+        rotation = point.transforms[0].rotation
         quaternion = [rotation.x, rotation.y, rotation.z, rotation.w]
         roll, pitch, yaw = euler_from_quaternion(quaternion)
 
         # Extract velocities
-        linear_velocity = msg.points[0].velocities[0].linear
-        angular_velocity = msg.points[0].velocities[0].angular
+        linear_velocity = point.velocities[0].linear
+        angular_velocity = point.velocities[0].angular
 
         # Extract accelerations
-        linear_acceleration = msg.points[0].accelerations[0].linear
-        angular_acceleration = msg.points[0].accelerations[0].angular
+        linear_acceleration = point.accelerations[0].linear
+        angular_acceleration = point.accelerations[0].angular
 
         # Time from start
-        time_from_start = msg.points[0].time_from_start.to_sec()
+        time_from_start = point.time_from_start.to_sec()
 
         data = {
             "position": position,

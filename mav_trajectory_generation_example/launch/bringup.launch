@@ -41,23 +41,34 @@
     
     <!--- Trajectory sampler -->
     <node name="sampler" pkg="mav_trajectory_generation_ros" type="trajectory_sampler_node" output="screen">
-        <param name="dt" value="0.02"/>
+        <!-- Parameters -->
+        <param name="dt" value="0.01"/>
         <param name="publish_whole_trajectory" value="false"/>
-        
+        <!-- Input topics -->
         <remap from="path_segments_4D" to="/example_planner4d/trajectory4d"/>
         <remap from="path_segments" to="path_segments"/>
+        <!-- Output topics -->
         <remap from="/command/trajectory" to="/command/trajectory"/>
         
     </node>
 
+    <!-- Dummy Trajectory Controller -->
+    <node name="dummy_controller" pkg="mav_trajectory_generation_example" type="dummy_controller.py" output="screen">
+        <!-- Input topics -->
+        <remap from="command/trajectory" to="/command/trajectory"/>
+        <!-- Output topics -->
+        <remap from="drone/position_yaw/command" to="/drone/position_yaw/command"/>        
+    </node>
+    
+
     <!-- LEE Position Controller -->
-    <node name="lee_position_controller_node" pkg="rotors_control" type="lee_position_controller_node" output="screen">
+    <!-- <node name="lee_position_controller_node" pkg="rotors_control" type="lee_position_controller_node" output="screen">
         <rosparam command="load" file="$(find rotors_control)/resources/lee_controller_firefly.yaml" />
         <rosparam command="load" file="$(find rotors_control)/resources/firefly.yaml" />
         <remap from="odometry" to="/drone/odometry" />
         <remap from="command/pose" to="command/pose" />
         <remap from="command/trajectory" to="command/trajectory" />
         <remap from="command/motor_speed" to="command/motor_speed" />
-    </node>
+    </node> -->
     
 </launch>

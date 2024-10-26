@@ -271,6 +271,9 @@ class DummyController:
             if hasattr(cmd, "yaw_rate"):
                 cmd.yaw_rate = 0
 
+            if hasattr(cmd, "yaw"):
+                cmd.yaw = 0
+
             if hasattr(cmd, "attitude"):
                 cmd.attitude.x = 0
                 cmd.attitude.y = 0

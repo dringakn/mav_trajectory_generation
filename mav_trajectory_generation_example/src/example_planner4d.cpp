@@ -269,16 +269,16 @@ private:
                                                                     max_linear_acceleration_);
 
     mav_trajectory_generation::NonlinearOptimizationParameters optimizerParameters;
-    // optimizerParameters.max_iterations = 1000;
-    // optimizerParameters.f_rel = 0.05;
-    // optimizerParameters.x_rel = 0.1;
-    // optimizerParameters.time_penalty = 500.0;
-    // optimizerParameters.initial_stepsize_rel = 0.1;
-    // optimizerParameters.inequality_constraint_tolerance = 0.1;
-    // optimizerParameters.print_debug_info = true;
-    // optimizerParameters.print_debug_info_time_allocation = true;
-    // optimizerParameters.use_soft_constraints = true;
-    // optimizerParameters.soft_constraint_weight = 100;
+    optimizerParameters.max_iterations = 1000;
+    optimizerParameters.f_rel = 0.05;
+    optimizerParameters.x_rel = 0.1;
+    optimizerParameters.time_penalty = 500.0;
+    optimizerParameters.initial_stepsize_rel = 0.1;
+    optimizerParameters.inequality_constraint_tolerance = 0.1;
+    optimizerParameters.print_debug_info = true;
+    optimizerParameters.print_debug_info_time_allocation = true;
+    optimizerParameters.use_soft_constraints = true;
+    optimizerParameters.soft_constraint_weight = 100;
 
     /*  SETUP OPTIMIZER  */
     mav_trajectory_generation::PolynomialOptimizationNonLinear<N10> optimizer(DIM, optimizerParameters);

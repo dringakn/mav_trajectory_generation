@@ -59,11 +59,12 @@
         <!-- Parameters -->
         <param name="drone_mass" value="1.0"/>
         <!-- PositionYawControl, VelocityYawRateControl, ThrustTorqueControl, ThrustVelocityControl, ThrustAttitudeControl -->
-        <param name="control_output_type" value="PositionYawControl"/>
+        <param name="control_output_type" value="VelocityYawRateControl"/>
         <!-- Input topics -->
-        <remap from="command/trajectory" to="/command/trajectory"/>
+        <!-- <remap from="command/trajectory" to="/command/trajectory"/> -->
         <!-- Output topics (depends on control_output_type) -->
-        <remap from="drone/position_yaw/command" to="/drone/position_yaw/command"/>        
+        <!-- <remap from="drone/position_yaw/command" to="/drone/position_yaw/command"/>         -->
+        <!-- <remap from="drone/velocity_yawrate/command" to="/drone/velocity_yawrate/command"/>         -->
     </node>
     
 

@@ -360,7 +360,7 @@ private:
   }
 
   double getTrajectoryLength(const mav_trajectory_generation::Trajectory& trajectory, 
-                             double dt)
+                             double dt, bool verbose=false)
   {
     double trajectory_length = 0.0;
     // Integrate velocities to get the trajectory length
@@ -372,17 +372,19 @@ private:
 
       trajectory_length += std::hypot(velocity[0], velocity[1]) * dt;  // Assuming a constant step size
 
-      // Print debug information
-      std::cout << std::fixed 
-                << std::showpos 
-                << std::setprecision(2) 
-                << std::setw(3) 
-                << std::setfill(' ') 
-                << "T: " << t << "\t"
-                << "L: " << trajectory_length << "\t"
-                << "V: " << std::hypot(velocity[0], velocity[1]) << "\t"
-                << "A: " << std::hypot(acceleration[0], acceleration[1]) 
-                << std::endl;
+      if (verbose){
+        // Print debug information
+        std::cout << std::fixed 
+                  << std::showpos 
+                  << std::setprecision(2) 
+                  << std::setw(3) 
+                  << std::setfill(' ') 
+                  << "T: " << t << "\t"
+                  << "L: " << trajectory_length << "\t"
+                  << "V: " << std::hypot(velocity[0], velocity[1]) << "\t"
+                  << "A: " << std::hypot(acceleration[0], acceleration[1]) 
+                  << std::endl;
+      }
     }
 
     return trajectory_length;

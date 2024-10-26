@@ -264,21 +264,35 @@ private:
 
     // List to estimate initial waypoints segment times.
     std::vector<double> segment_times;  
-    segment_times = mav_trajectory_generation::estimateSegmentTimes(waypoint_vertices, 
-                                                                    max_linear_velocity_,
-                                                                    max_linear_acceleration_);
+    const double magic_fabian_constant = 6.5;
+    // segment_times = mav_trajectory_generation::estimateSegmentTimesNfabian(
+    //                 waypoint_vertices, 
+    //                 max_linear_velocity_,
+    //                 max_linear_acceleration_,
+    //                 magic_fabian_constant
+    //                 );
+    segment_times = mav_trajectory_generation::estimateSegmentTimesVelocityRamp(
+                    waypoint_vertices, 
+                    max_linear_velocity_,
+                    max_linear_acceleration_,
+                    magic_fabian_constant
+                    );
 
     mav_trajectory_generation::NonlinearOptimizationParameters optimizerParameters;
-    optimizerParameters.max_iterations = 1000;
-    optimizerParameters.f_rel = 0.05;
-    optimizerParameters.x_rel = 0.1;
-    optimizerParameters.time_penalty = 500.0;
-    optimizerParameters.initial_stepsize_rel = 0.1;
-    optimizerParameters.inequality_constraint_tolerance = 0.1;
-    optimizerParameters.print_debug_info = true;
-    optimizerParameters.print_debug_info_time_allocation = true;
-    optimizerParameters.use_soft_constraints = true;
-    optimizerParameters.soft_constraint_weight = 100;
+    optimizerParameters.max_iterations = 3000; // Maximum number of iterations. Disabled if negative.
+    optimizerParameters.f_abs = -1; // Stopping criteria, if objective function changes less than absolute value. Disabled if negative.
+    optimizerParameters.f_rel = 0.05; // Stopping criteria, if objective function changes less than relative value. Disabled if negative.
+    optimizerParameters.x_abs = -1; // Stopping criteria, if state changes less than absolute value. Disabled if negative.
+    optimizerParameters.x_rel = -1; // Stopping criteria, if state changes less than relative value. Disabled if negative.
+    optimizerParameters.initial_stepsize_rel = 0.1; // // Determines a fraction of the initial guess as initial step size. Heuristic value if negative.
+    optimizerParameters.equality_constraint_tolerance = 1.0e-3; // Absolute tolerance, within an equality constraint is considered as met.
+    optimizerParameters.inequality_constraint_tolerance = 0.1; // Absolute tolerance, within an inequality constraint is considered as met.
+    optimizerParameters.use_soft_constraints = true; // Decide whether to use soft constraints.
+    optimizerParameters.soft_constraint_weight = 100; // Weights the relative violation of a soft constraint.
+    optimizerParameters.time_penalty = 500.0; // Penalty for the segment time.
+    optimizerParameters.algorithm = nlopt::LN_BOBYQA;
+    optimizerParameters.print_debug_info = false;    
+    optimizerParameters.print_debug_info_time_allocation = false;
 
     /*  SETUP OPTIMIZER  */
     mav_trajectory_generation::PolynomialOptimizationNonLinear<N10> optimizer(DIM, optimizerParameters);

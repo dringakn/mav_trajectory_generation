@@ -5,7 +5,10 @@ import math
 from enum import Enum
 from tf.transformations import euler_from_quaternion
 
-# Different control modes for the drone.
+# Import service types
+from uav_gazebo_msgs.srv import GetMode, SwitchMode, SwitchModeRequest
+
+# Different control modes for the drone
 from uav_gazebo_msgs.msg import (
     PositionYawControl,
     VelocityYawRateControl,
@@ -19,11 +22,11 @@ from trajectory_msgs.msg import MultiDOFJointTrajectory
 
 
 class ControlOutputType(Enum):
-    POSITION_YAW = "PositionYawControl"
-    VELOCITY_YAWRATE = "VelocityYawRateControl"
-    THRUST_ATTITUDE = "ThrustAttitudeControl"
-    THRUST_VELOCITY = "ThrustVelocityControl"
-    THRUST_TORQUE = "ThrustTorqueControl"
+    POSITION_YAW = ("PositionYawControl", 1)
+    VELOCITY_YAWRATE = ("VelocityYawRateControl", 2)
+    THRUST_ATTITUDE = ("ThrustAttitudeControl", 3)
+    THRUST_VELOCITY = ("ThrustVelocityControl", 4)
+    THRUST_TORQUE = ("ThrustTorqueControl", 5)
 
 
 class DummyController:
@@ -33,13 +36,13 @@ class DummyController:
 
         # Get control output type from ROS parameter
         control_output_type_str = rospy.get_param(
-            "~control_output_type", "PositionYawControl"
+            "~control_output_type", "VelocityYawRateControl"
         )
 
         # Try to parse the control output type
         try:
-            self.control_output_type = ControlOutputType(control_output_type_str)
-        except ValueError:
+            self.control_output_type = next(cot for cot in ControlOutputType if cot.value[0] == control_output_type_str)
+        except StopIteration:
             rospy.logerr(f"Invalid control output type: {control_output_type_str}")
             rospy.signal_shutdown("Invalid control output type")
             return
@@ -75,18 +78,84 @@ class DummyController:
             "/command/trajectory", MultiDOFJointTrajectory, self.trajectory_callback
         )
 
+        # Ensure correct controller mode on startup
+        self.ensure_correct_mode()
+
+        # Set up a timer to check the controller mode every second
+        self.mode_check_timer = rospy.Timer(rospy.Duration(1), self.mode_check_callback)
+
         # Set up shutdown handler
         rospy.on_shutdown(self.send_zero_command)
 
         rospy.loginfo(
-            f"DummyController initialized with control output type: {self.control_output_type.value}"
+            f"DummyController initialized with control output type: {self.control_output_type.value[0]}"
         )
+
+    def ensure_correct_mode(self):
+        # Wait for services to become available
+        rospy.wait_for_service("/drone/get_mode")
+        rospy.wait_for_service("/drone/switch_mode")
+
+        try:
+            # Create service proxies
+            self.get_mode_service = rospy.ServiceProxy("/drone/get_mode", GetMode)
+            self.switch_mode_service = rospy.ServiceProxy(
+                "/drone/switch_mode", SwitchMode
+            )
+
+            # Get current mode
+            response = self.get_mode_service()
+            current_mode = response.mode.mode
+            desired_mode = self.control_output_type.value[1]
+
+            rospy.loginfo(f"Current controller mode: {current_mode}")
+            rospy.loginfo(f"Desired controller mode: {desired_mode}")
+
+            if current_mode != desired_mode:
+                rospy.loginfo("Switching controller mode...")
+                request = SwitchModeRequest()
+                request.mode.mode = desired_mode
+                switch_response = self.switch_mode_service(request)
+                if switch_response.success:
+                    rospy.loginfo("Controller mode switched successfully.")
+                else:
+                    rospy.logerr("Failed to switch controller mode.")
+                    rospy.signal_shutdown("Failed to switch controller mode")
+            else:
+                rospy.loginfo("Controller mode is already set correctly.")
+        except rospy.ServiceException as e:
+            rospy.logerr(f"Service call failed: {e}")
+            rospy.signal_shutdown("Service call failed")
+
+    def mode_check_callback(self, event):
+        # Periodically check the controller mode and switch if necessary
+        try:
+            # Get current mode
+            response = self.get_mode_service()
+            current_mode = response.mode.mode
+            desired_mode = self.control_output_type.value[1]
+
+            if current_mode != desired_mode:
+                rospy.logwarn(
+                    f"Controller mode changed to {current_mode}, switching back to {desired_mode}"
+                )
+                request = SwitchModeRequest()
+                request.mode.mode = desired_mode
+                switch_response = self.switch_mode_service(request)
+                if switch_response.success:
+                    rospy.loginfo("Controller mode switched back successfully.")
+                else:
+                    rospy.logerr("Failed to switch controller mode.")
+        except rospy.ServiceException as e:
+            rospy.logerr(f"Service call failed during mode check: {e}")
 
     def trajectory_callback(self, msg):
         # Depending on control output type, create appropriate command message
         try:
             # Extract common data
             data = self.extract_data_from_msg(msg)
+            if data is None:
+                return  # Skip processing if data extraction failed
 
             if self.control_output_type == ControlOutputType.POSITION_YAW:
                 cmd = self.create_position_yaw_control_msg(data)
@@ -202,7 +271,7 @@ class DummyController:
         cmd = ThrustAttitudeControl()
         cmd.thrust = self.calculate_thrust(data)
 
-        # Convert Euler angles to desired attitude representation (e.g., degrees)
+        # Convert Euler angles to degrees
         cmd.attitude.x = math.degrees(data["orientation"]["roll"])
         cmd.attitude.y = math.degrees(data["orientation"]["pitch"])
         cmd.attitude.z = math.degrees(data["orientation"]["yaw"])
@@ -243,11 +312,10 @@ class DummyController:
 
     def calculate_thrust(self, data):
         # Placeholder calculation for thrust (should be replaced with actual computation)
-        # For example, thrust could be proportional to desired acceleration along z-axis
-        mass = rospy.get_param("~drone_mass", 1.0)  # Get drone mass from parameter
+        mass = rospy.get_param("~drone_mass", 1.0)  # Drone mass
         gravity = 9.81  # Gravitational acceleration
 
-        # Calculate thrust required to achieve the desired acceleration plus gravity
+        # Calculate thrust to achieve desired acceleration plus counteracting gravity
         thrust = mass * (data["linear_acceleration"].z + gravity)
 
         return thrust

@@ -1,0 +1,85 @@
+# -----------------------------------------------------------------------------
+# pyproject.toml — Build configuration and metadata for PEP 517/518
+# -----------------------------------------------------------------------------
+
+[build-system]
+# What’s needed at build time, and which backend to invoke
+requires      = ["setuptools>=75.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# -----------------------------------------------------------------------------
+# Project metadata (PEP 621)
+# -----------------------------------------------------------------------------
+[project]
+name        = "mav_trajectory_generation"        # PyPI distribution name
+version     = "1.0.0"                            # Release version
+
+# --- Descriptions ---
+description = "Python bindings for mav_trajectory_generation via Nanobind"
+#readme     = "README.md"                        # Path to long description
+license     = { text="BSD-3-Clause" }            # License file
+
+# --- Author & Support ---
+authors = [
+  { name = "Dr. Ing. Ahmad Kamal Nasir", email = "dringakn@gmail.com" }
+]
+
+# --- Python compatibility & dependencies ---
+requires-python = ">=3.8"                        # Supported Python versions
+dependencies    = [
+    "nanobind>=2.7.0",               # Required dependencies
+]
+
+# --- Optional metadata for PyPI display ---
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: C++ :: 17",
+  "Operating System :: OS Independent",
+  "Framework :: Robot Operating System",
+  "Framework :: Robot Operating System :: ROS 2",
+]
+keywords = [
+    "mav-trajectory-generation", 
+    "nanobind", 
+    "ROS", 
+    "ROS2",
+    "robotics",
+    "robot",
+    "trajectory",
+    "motion",
+    "planning",
+    "control",
+    "path",
+    "navigation",
+    "autonomous",
+    "autonomy",
+    "C++", 
+    "bindings"
+]
+
+# --- Project URLs (the “missing info”) ---
+[project.urls]
+Homepage = "https://github.com/dringakn/mav_trajectory_generation"
+Source   = "https://github.com/dringakn/mav_trajectory_generation"
+
+# -----------------------------------------------------------------------------
+# setuptools-specific configuration
+# -----------------------------------------------------------------------------
+[tool.setuptools]
+# Map the root package directory for setuptools
+package-dir = { "" = "python" }
+
+[tool.setuptools.packages.find]
+# Automatically discover packages under `python/`
+where = ["python"]
+
+[tool.setuptools.package-data]
+# Include compiled extensions so they end up in the wheel
+"mav_trajectory_generation" = ["*.so"]
+
+# -----------------------------------------------------------------------------
+# Console entry-points
+# -----------------------------------------------------------------------------
+[project.scripts]
+# exposes a `test` command that runs your scripts/test.py:main()
+test = "mav_trajectory_generation.test_mav_trajectory:main"

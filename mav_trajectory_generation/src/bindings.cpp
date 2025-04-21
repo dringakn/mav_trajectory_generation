@@ -1,19 +1,36 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/vector.h>
 #include <Eigen/Core>
+#include <nanobind/eigen/dense.h>   // Eigen ↔ NumPy converters
+#include <nanobind/stl/vector.h>    // for std::vector<double> ↔ list
 
+#include <mav_trajectory_generation/motion_defines.h>
 #include <mav_trajectory_generation/vertex.h>
 #include <mav_trajectory_generation/polynomial_optimization_linear.h>
 #include <mav_trajectory_generation/segment.h>
 
 namespace nb  = nanobind;
+using namespace Eigen;
 using namespace mav_trajectory_generation;
 
 // 10 coefficients ⇒ optimize snap (4th derivative) in 3D
 using PolyOpt3D = PolynomialOptimization<10>;
 
-NB_MODULE(mav_trajectory, m) {
+NB_MODULE(mav_trajectory_generation_py, m) {
     m.doc() = "Nanobind bindings for mav_trajectory_generation";
+
+    // expose mav_trajectory_generation::derivative_order as a submodule
+    auto d = m.def_submodule("derivative_order", "Derivative order constants");
+    using namespace mav_trajectory_generation::derivative_order;
+    d.attr("POSITION")            = POSITION;
+    d.attr("VELOCITY")            = VELOCITY;
+    d.attr("ACCELERATION")        = ACCELERATION;
+    d.attr("JERK")                = JERK;
+    d.attr("SNAP")                = SNAP;
+    d.attr("ORIENTATION")         = ORIENTATION;
+    d.attr("ANGULAR_VELOCITY")    = ANGULAR_VELOCITY;
+    d.attr("ANGULAR_ACCELERATION")= ANGULAR_ACCELERATION;
+    d.attr("INVALID")             = INVALID;
 
     // Vertex
     nb::class_<Vertex>(m, "Vertex")

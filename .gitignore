@@ -36,3 +36,6 @@
 
 # Matlab
 *.m~
+
+# ignore all egg‑info dirs
+*.egg-info/

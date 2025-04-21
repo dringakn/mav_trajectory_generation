@@ -5,7 +5,7 @@ find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
 
 set(CMAKE_MACOSX_RPATH 0)
-add_definitions(-std=c++11)
+add_definitions(-std=c++17)
 
 # Link against system catkin yaml-cpp if installed.
 find_package(PkgConfig)
@@ -22,21 +22,19 @@ endif()
 ##############################
 # Python bindings via Nanobind
 ##############################
-if (CMAKE_VERSION VERSION_LESS "3.18")
-  set(DEV_MODULE Development)
-else()
-  set(DEV_MODULE Development.Module)
-endif()
-find_package(Python 3.8 REQUIRED COMPONENTS Interpreter ${DEV_MODULE})
-
-add_subdirectory(externals/nanobind)
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 find_package(Eigen3 REQUIRED)
-
-nanobind_add_module(mav_trajectory_py src/bindings.cpp)
-target_link_libraries(mav_trajectory_py PRIVATE ${PROJECT_NAME} Eigen3::Eigen)
-
+include_directories(${Python3_INCLUDE_DIRS})
+add_subdirectory(externals/nanobind)
+nanobind_add_module(mav_trajectory_generation_py src/bindings.cpp)
+target_link_libraries(mav_trajectory_generation_py PRIVATE ${PROJECT_NAME} Python3::Python Eigen3::Eigen)
 # Build as .so with no “lib” prefix
-set_target_properties(mav_trajectory_py PROPERTIES PREFIX "" SUFFIX ".so")
+set_target_properties(mav_trajectory_generation_py PROPERTIES 
+  CMAKE_CXX_STANDARD 17
+  LINKER_LANGUAGE    CXX
+  PREFIX "" 
+  SUFFIX ".so"
+)
 
 #############
 # LIBRARIES #

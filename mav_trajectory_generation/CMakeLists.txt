@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.15)
 project(mav_trajectory_generation)
 
 find_package(catkin_simple REQUIRED)
@@ -18,6 +18,25 @@ else()
     message(STATUS "No yaml_cpp_catkin, using yaml-cpp system library instead.")
     pkg_check_modules(YamlCpp REQUIRED yaml-cpp>=0.5)
 endif()
+
+##############################
+# Python bindings via Nanobind
+##############################
+if (CMAKE_VERSION VERSION_LESS "3.18")
+  set(DEV_MODULE Development)
+else()
+  set(DEV_MODULE Development.Module)
+endif()
+find_package(Python 3.8 REQUIRED COMPONENTS Interpreter ${DEV_MODULE})
+
+add_subdirectory(externals/nanobind)
+find_package(Eigen3 REQUIRED)
+
+nanobind_add_module(mav_trajectory_py src/bindings.cpp)
+target_link_libraries(mav_trajectory_py PRIVATE ${PROJECT_NAME} Eigen3::Eigen)
+
+# Build as .so with no “lib” prefix
+set_target_properties(mav_trajectory_py PROPERTIES PREFIX "" SUFFIX ".so")
 
 #############
 # LIBRARIES #

@@ -143,6 +143,9 @@ class TrajectoryPlanner:
         rospy.loginfo("Yaw trajectory segments:")
         for seg in self.yaw_traj.get_segments():
             rospy.loginfo(f"  → duration = {seg.get_time():.2f} s")
+            
+        print(f"PosTraj[Vmax,Amax]: {self.pos_traj.compute_max_velocity_and_acceleration()}")
+        print(f"YawTraj[Vmax,Amax]: {self.yaw_traj.compute_max_velocity_and_acceleration()}")
 
     @staticmethod
     def sample_trajectory(

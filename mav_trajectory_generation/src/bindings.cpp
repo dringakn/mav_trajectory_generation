@@ -14,6 +14,7 @@
 #include <mav_trajectory_generation/trajectory_sampling.h>
 
 namespace nb = nanobind;
+namespace mtg = mav_trajectory_generation;
 
 using namespace Eigen;
 using namespace mav_trajectory_generation;
@@ -291,7 +292,8 @@ NB_MODULE(mav_trajectory_generation_py, m)
                     self.evaluateRange(
                          t_start, t_end, dt, der,
                          &out_vals, &out_times);
-                    return std::make_pair(out_vals, out_times);
+                    return std::make_tuple(out_vals, out_times);                    
+                    // return std::vector<double>{ out_vals, out_times };
                },
                nb::arg("t_start"),
                nb::arg("t_end"),
@@ -328,7 +330,8 @@ NB_MODULE(mav_trajectory_generation_py, m)
                [](const Trajectory &self) {
                double v_max, a_max;
                self.computeMaxVelocityAndAcceleration(&v_max, &a_max);
-               return std::make_pair(v_max, a_max);
+               // return a Python list [v_max, a_max]
+               return std::vector<double>{ v_max, a_max };
                })
 
           // merging & offsets

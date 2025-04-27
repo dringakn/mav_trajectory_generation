@@ -1,6 +1,6 @@
 # mav_trajectory_generation/__init__.pyi
 
-from typing import List, Sequence, Union
+from typing import List, Sequence, Union, Dict
 import numpy as np
 
 # derivative_order submodule
@@ -69,7 +69,7 @@ class NloptAlgorithm:
     G_MLSL_LDS: int
     GN_ISRES: int
     GN_ESCH: int
-    
+
     # sentinel
     NUM_ALGORITHMS: int
 
@@ -108,6 +108,7 @@ class PolynomialOptimization:
     ) -> None: ...
     def solve_linear(self) -> None: ...
     def get_segments(self) -> List["Segment"]: ...
+    def get_trajectory(self, trajectory: "Trajectory") -> None: ...
 
 class Segment:
     def get_time(self) -> float: ...
@@ -154,14 +155,15 @@ class OptimizationInfo:
     cost_time: float
     cost_soft_constraints: float
     optimization_time: float
-
-    # if you bound `maxima`, you can add:
     # maxima: Dict[int, Extremum]
 
 class Trajectory:
     def __init__(self) -> None: ...
     def scale_segment_times_to_meet_constraints(self, v_max: float, a_max: float) -> None: ...
     def get_segments(self) -> List[Segment]: ...
+    def get_trajectory_with_appended_dimension(self,
+                                               yaw_trajectory: "Trajectory",
+                                               out: "Trajectory") -> None: ...
 
 def nlopt_return_value_to_string(return_value: int) -> str: ...
 

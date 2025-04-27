@@ -27,16 +27,16 @@ NB_MODULE(mav_trajectory_generation_py, m)
 
      // expose mav_trajectory_generation::derivative_order as a submodule
      auto d = m.def_submodule("derivative_order", "Derivative order constants");
-     using namespace mav_trajectory_generation::derivative_order;
-     d.attr("POSITION") = POSITION;
-     d.attr("VELOCITY") = VELOCITY;
-     d.attr("ACCELERATION") = ACCELERATION;
-     d.attr("JERK") = JERK;
-     d.attr("SNAP") = SNAP;
-     d.attr("ORIENTATION") = ORIENTATION;
-     d.attr("ANGULAR_VELOCITY") = ANGULAR_VELOCITY;
-     d.attr("ANGULAR_ACCELERATION") = ANGULAR_ACCELERATION;
-     d.attr("INVALID") = INVALID;
+     // using namespace mav_trajectory_generation::derivative_order;
+     d.attr("POSITION") = mav_trajectory_generation::derivative_order::POSITION;
+     d.attr("VELOCITY") = mav_trajectory_generation::derivative_order::VELOCITY;
+     d.attr("ACCELERATION") = mav_trajectory_generation::derivative_order::ACCELERATION;
+     d.attr("JERK") = mav_trajectory_generation::derivative_order::JERK;
+     d.attr("SNAP") = mav_trajectory_generation::derivative_order::SNAP;
+     d.attr("ORIENTATION") = mav_trajectory_generation::derivative_order::ORIENTATION;
+     d.attr("ANGULAR_VELOCITY") = mav_trajectory_generation::derivative_order::ANGULAR_VELOCITY;
+     d.attr("ANGULAR_ACCELERATION") = mav_trajectory_generation::derivative_order::ANGULAR_ACCELERATION;
+     d.attr("INVALID") = mav_trajectory_generation::derivative_order::INVALID;
 
      // Vertex
      nb::class_<Vertex>(m, "Vertex")
@@ -86,6 +86,8 @@ NB_MODULE(mav_trajectory_generation_py, m)
               nb::arg("derivative"));
 
      // estimateSegmentTimes
+     // Makes a rough estimate based on v_max and a_max about the time
+     // required to get from one vertex to the next.
      m.def("estimate_segment_times",
            &estimateSegmentTimes,
            nb::arg("vertices"),

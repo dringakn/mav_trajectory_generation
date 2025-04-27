@@ -2,6 +2,7 @@
 #include <Eigen/Core>
 #include <nanobind/eigen/dense.h> // Eigen ↔ NumPy converters
 #include <nanobind/stl/vector.h>  // for std::vector<double> ↔ list
+#include <yaml-cpp/yaml.h>
 
 #include <mav_trajectory_generation/motion_defines.h>
 #include <mav_trajectory_generation/vertex.h>
@@ -9,8 +10,11 @@
 #include <mav_trajectory_generation/segment.h>
 #include <mav_trajectory_generation/polynomial_optimization_nonlinear.h>
 #include <mav_trajectory_generation/trajectory.h>
+#include <mav_trajectory_generation/io.h>
+#include <mav_trajectory_generation/trajectory_sampling.h>
 
 namespace nb = nanobind;
+
 using namespace Eigen;
 using namespace mav_trajectory_generation;
 
@@ -24,7 +28,7 @@ using PolyOptNonLin = PolynomialOptimizationNonLinear<N>;
 NB_MODULE(mav_trajectory_generation_py, m)
 {
      m.doc() = "Nanobind bindings for mav_trajectory_generation";
-
+     
      // expose mav_trajectory_generation::derivative_order as a submodule
      auto d = m.def_submodule("derivative_order", "Derivative order constants");
      // using namespace mav_trajectory_generation::derivative_order;
@@ -85,14 +89,35 @@ NB_MODULE(mav_trajectory_generation_py, m)
               },
               nb::arg("derivative"));
 
-     // estimateSegmentTimes
-     // Makes a rough estimate based on v_max and a_max about the time
-     // required to get from one vertex to the next.
+     /*
+     estimateSegmentTimes
+          Makes a rough estimate based on v_max and a_max about the time
+          required to get from one vertex to the next.
+          Calculate the velocity assuming instantaneous constant acceleration a_max
+          and straight line rest-to-rest trajectories.
+          The time_factor \in [1..Inf] increases the allocated time making the segments
+          slower and thus feasibility more likely. This method does not take into
+          account the start and goal velocity and acceleration.     
+     */
      m.def("estimate_segment_times",
            &estimateSegmentTimes,
            nb::arg("vertices"),
            nb::arg("v_max"),
            nb::arg("a_max"));
+
+     /*
+     estimateSegmentTimesNfabian
+          Makes a rough estimate based on v_max and a_max about the time
+          required to get from one vertex to the next.
+          t_est = 2 * distance/v_max * (1 + magic_fabian_constant * v_max/a_max * exp(-distance/v_max * 2);
+          magic_fabian_constant was determined to 6.5 in a student project ...
+     */           
+     m.def("estimate_segment_times_nfabian",
+           &estimateSegmentTimesNfabian,
+           nb::arg("vertices"),
+           nb::arg("v_max"),
+           nb::arg("a_max"),
+           nb::arg("magic_fabian_constant") = 6.5);
 
      // PolynomialOptimization<10>
      nb::class_<PolyOpt3D>(m, "PolynomialOptimization")
@@ -252,11 +277,27 @@ NB_MODULE(mav_trajectory_generation_py, m)
 
      // Trajectory
      nb::class_<Trajectory>(m, "Trajectory")
-         .def(nb::init<>())
-         .def("scale_segment_times_to_meet_constraints",
-              &Trajectory::scaleSegmentTimesToMeetConstraints,
-              nb::arg("v_max"), nb::arg("a_max"))
-         .def("get_segments",
+          .def(nb::init<>())
+          // evaluation
+          .def("evaluate",
+               &Trajectory::evaluate,
+               nb::arg("t"),
+               nb::arg("derivative_order"))
+          .def("evaluate_range",
+               [](const Trajectory &self,
+                    double t_start, double t_end, double dt, int der) {
+                    std::vector<Eigen::VectorXd> out_vals;
+                    std::vector<double> out_times;
+                    self.evaluateRange(
+                         t_start, t_end, dt, der,
+                         &out_vals, &out_times);
+                    return std::make_pair(out_vals, out_times);
+               },
+               nb::arg("t_start"),
+               nb::arg("t_end"),
+               nb::arg("dt"),
+               nb::arg("derivative_order"))
+          .def("get_segments",
               [](const Trajectory &t)
               {
                    // use the const accessor and return a copy
@@ -265,11 +306,126 @@ NB_MODULE(mav_trajectory_generation_py, m)
                    t.getSegments(&segs);
                    return segs;
               })
-         .def("get_trajectory_with_appended_dimension", [](const Trajectory &in, const Trajectory &yaw, Trajectory &out)
-              { in.getTrajectoryWithAppendedDimension(yaw, &out); }, nb::arg("yaw_trajectory"), nb::arg("out"));
+          .def("get_trajectory_with_single_dimension", &Trajectory::getTrajectoryWithSingleDimension, nb::arg("dimension"))
+          .def("get_trajectory_with_appended_dimension", [](const Trajectory &in, const Trajectory &yaw, Trajectory &out)
+              { in.getTrajectoryWithAppendedDimension(yaw, &out); }, 
+               nb::arg("yaw_trajectory"), nb::arg("out"))
+          // timing / scaling
+          .def("get_segment_times",
+               &Trajectory::getSegmentTimes)
+
+          .def("scale_segment_times",
+               &Trajectory::scaleSegmentTimes,
+               nb::arg("scaling"))
+
+          .def("scale_segment_times_to_meet_constraints",
+               &Trajectory::scaleSegmentTimesToMeetConstraints,
+               nb::arg("v_max"),
+               nb::arg("a_max"))
+
+          // kinematic limits
+          .def("compute_max_velocity_and_acceleration",
+               [](const Trajectory &self) {
+               double v_max, a_max;
+               self.computeMaxVelocityAndAcceleration(&v_max, &a_max);
+               return std::make_pair(v_max, a_max);
+               })
+
+          // merging & offsets
+          .def("add_trajectories",
+               [](const Trajectory &self,
+               const std::vector<Trajectory> &list) {
+               Trajectory merged;
+               self.addTrajectories(list, &merged);
+               return merged;
+               },
+               nb::arg("trajectories"))
+
+          .def("offset_trajectory",
+               &Trajectory::offsetTrajectory,
+               nb::arg("A_r_B"))              
+          ;
 
      // Helpers
      m.def("nlopt_return_value_to_string", [](nlopt::algorithm v)
            { return nlopt::returnValueToString(v); }, nb::arg("return_value"));
 
+     // --- YAML serialization
+     m.def("trajectory_to_yaml",
+          [](const Trajectory &traj) {
+          YAML::Node node = trajectoryToYaml(traj);
+          YAML::Emitter out;
+          out << node;
+          return std::string(out.c_str());
+          },
+          nb::arg("trajectory"),
+          "Serialize a Trajectory into a YAML string.");
+
+     m.def("trajectory_from_yaml",
+          [](const std::string &yaml_str) {
+          YAML::Node node = YAML::Load(yaml_str);
+          Trajectory traj;
+          if (!trajectoryFromYaml(node, &traj))
+               throw std::runtime_error("Failed to parse trajectory YAML");
+          return traj;
+          },
+          nb::arg("yaml"),
+          "Parse a YAML string into a new Trajectory.");
+
+     m.def("segments_to_yaml",
+          [](const std::vector<Segment> &segs) {
+          YAML::Node node = segmentsToYaml(segs);
+          YAML::Emitter out; out << node;
+          return std::string(out.c_str());
+          },
+          nb::arg("segments"),
+          "Serialize a list of Segments to a YAML string.");
+
+     m.def("segments_from_yaml",
+          [](const std::string &yaml_str) {
+          YAML::Node node = YAML::Load(yaml_str);
+          std::vector<Segment> segs;
+          if (!segmentsFromYaml(node, &segs))
+               throw std::runtime_error("Failed to parse segments YAML");
+          return segs;
+          },
+          nb::arg("yaml"),
+          "Parse a YAML string into a list of Segments.");
+
+     // --- File I/O
+     m.def("write_segments",
+          [](const std::string &fn, const std::vector<Segment> &segs) {
+          if (!segmentsToFile(fn, segs))
+               throw std::runtime_error("Could not write segments to " + fn);
+          },
+          nb::arg("filename"), nb::arg("segments"),
+          "Write a list of Segments to a YAML file.");
+
+     m.def("read_segments",
+          [](const std::string &fn) {
+          std::vector<Segment> segs;
+          if (!segmentsFromFile(fn, &segs))
+               throw std::runtime_error("Could not read segments from " + fn);
+          return segs;
+          },
+          nb::arg("filename"),
+          "Read a list of Segments from a YAML file.");
+
+     // --- Trajectory sampling to MATLAB-style file
+     m.def("write_sampled_trajectory",
+          &sampledTrajectoryStatesToFile,
+          nb::arg("filename"),
+          nb::arg("trajectory"),
+          "Sample a Trajectory at 0.01 s and dump to a text file.");
+
+     // (Optional) expose the low-level sampler itself:
+     m.def("sample_whole_trajectory",
+          [](const Trajectory &traj, double dt){
+          mav_msgs::EigenTrajectoryPoint::Vector pts;
+          if (!sampleWholeTrajectory(traj, dt, &pts))
+               throw std::runtime_error("Trajectory sampling failed");
+          return pts;
+          },
+          nb::arg("trajectory"), nb::arg("dt"),
+          "Return a list of EigenTrajectoryPoint sampled every dt seconds.");
 }

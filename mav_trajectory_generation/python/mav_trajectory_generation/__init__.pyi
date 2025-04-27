@@ -1,6 +1,5 @@
 # mav_trajectory_generation/__init__.pyi
-
-from typing import List, Sequence, Union, Dict
+from typing import List, Sequence, Tuple
 import numpy as np
 
 # derivative_order submodule
@@ -73,6 +72,7 @@ class NloptAlgorithm:
     # sentinel
     NUM_ALGORITHMS: int
 
+
 # TimeAllocMethod enum
 class TimeAllocMethod:
     kSquaredTime: int
@@ -96,6 +96,13 @@ def estimate_segment_times(
     vertices: List[Vertex],
     v_max: float,
     a_max: float
+) -> List[float]: ...
+
+def estimate_segment_times_nfabian(
+    vertices: List[Vertex],
+    v_max: float,
+    a_max: float,
+    magic_fabian_constant: float = 6.5
 ) -> List[float]: ...
 
 class PolynomialOptimization:
@@ -131,7 +138,6 @@ class NonlinearOptimizationParameters:
     time_alloc_method: TimeAllocMethod
     print_debug_info: bool
     print_debug_info_time_allocation: bool
-
     def __init__(self) -> None: ...
 
 class PolynomialOptimizationNonLinear:
@@ -155,22 +161,48 @@ class OptimizationInfo:
     cost_time: float
     cost_soft_constraints: float
     optimization_time: float
-    # maxima: Dict[int, Extremum]
 
 class Trajectory:
     def __init__(self) -> None: ...
-    def scale_segment_times_to_meet_constraints(self, v_max: float, a_max: float) -> None: ...
+    def evaluate(self, t: float, derivative_order: int) -> np.ndarray: ...
+    def evaluate_range(
+        self,
+        t_start: float,
+        t_end: float,
+        dt: float,
+        derivative_order: int
+    ) -> Tuple[List[np.ndarray], List[float]]: ...
     def get_segments(self) -> List[Segment]: ...
-    def get_trajectory_with_appended_dimension(self,
-                                               yaw_trajectory: "Trajectory",
-                                               out: "Trajectory") -> None: ...
+    def get_trajectory_with_single_dimension(self, dimension: int) -> "Trajectory": ...
+    def get_trajectory_with_appended_dimension(
+        self,
+        yaw_trajectory: "Trajectory",
+        out: "Trajectory"
+    ) -> None: ...
+    def get_segment_times(self) -> List[float]: ...
+    def scale_segment_times(self, scaling: float) -> bool: ...
+    def scale_segment_times_to_meet_constraints(self, v_max: float, a_max: float) -> bool: ...
+    def compute_max_velocity_and_acceleration(self) -> Tuple[float, float]: ...
+    def add_trajectories(self, trajectories: List["Trajectory"]) -> "Trajectory": ...
+    def offset_trajectory(self, A_r_B: np.ndarray) -> bool: ...
 
 def nlopt_return_value_to_string(return_value: int) -> str: ...
+
+def trajectory_to_yaml(trajectory: Trajectory) -> str: ...
+def trajectory_from_yaml(yaml: str) -> Trajectory: ...
+def segments_to_yaml(segments: List[Segment]) -> str: ...
+def segments_from_yaml(yaml: str) -> List[Segment]: ...
+def write_segments(filename: str, segments: List[Segment]) -> None: ...
+def read_segments(filename: str) -> List[Segment]: ...
+def write_sampled_trajectory(filename: str, trajectory: Trajectory) -> None: ...
+def sample_whole_trajectory(trajectory: Trajectory, dt: float) -> List[Any]: ...
+
 
 __all__ = [
     "Vertex",
     "PolynomialOptimization",
     "estimate_segment_times",
+    "estimate_segment_times_nfabian",
     "Segment",
     "derivative_order",
     "NloptAlgorithm",
@@ -180,4 +212,12 @@ __all__ = [
     "OptimizationInfo",
     "Trajectory",
     "nlopt_return_value_to_string",
+    "trajectory_to_yaml",
+    "trajectory_from_yaml",
+    "segments_to_yaml",
+    "segments_from_yaml",
+    "write_segments",
+    "read_segments",
+    "write_sampled_trajectory",
+    "sample_whole_trajectory",
 ]

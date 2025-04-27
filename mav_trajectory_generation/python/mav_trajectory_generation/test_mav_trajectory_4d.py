@@ -26,8 +26,11 @@ import rospy
 import tf
 from geometry_msgs.msg import Point, PoseStamped, Quaternion
 from mav_trajectory_generation import (
-    Vertex, PolynomialOptimization, estimate_segment_times, derivative_order,
+    Vertex, PolynomialOptimization, 
+    derivative_order,
     Trajectory,
+    estimate_segment_times, 
+    estimate_segment_times_nfabian,
 )
 from nav_msgs.msg import Path
 from visualization_msgs.msg import Marker, MarkerArray
@@ -114,6 +117,8 @@ class TrajectoryPlanner:
 
         # 2) Time allocation
         segment_times = estimate_segment_times(pos_vertices, self.v_max, self.a_max)
+        for i, t in enumerate(estimate_segment_times_nfabian(pos_vertices, self.v_max, self.a_max, 1)):
+            print(f"  segment {i}: t = {t:.2f} s")
 
         # 3a) Solve for position
         pos_opt = PolynomialOptimization(dimension=3)

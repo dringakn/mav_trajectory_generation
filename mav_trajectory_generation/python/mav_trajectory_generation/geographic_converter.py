@@ -17,7 +17,7 @@ import numpy as np
 class GeodeticConverter:
     # WGS84 ellipsoid constants
     kSemimajorAxis = 6378137.0
-    kSemiminorAxis = 6356752.3142
+    kSemiminorAxis = 6356752.314245
     kFirstEccentricitySquared = 6.69437999014e-3
     kSecondEccentricitySquared = 6.73949674228e-3
     kFlattening = 1.0 / 298.257223563
@@ -49,11 +49,13 @@ class GeodeticConverter:
         self._ecef0 = np.array([x0, y0, z0])
 
         # Compute rotation matrices
-        # phiP = geocentric latitude of reference
-        phi_p = math.atan2(z0, math.hypot(x0, y0))
-        self._ecef_to_ned = self._nRe(phi_p, self._lon0)
+        # Geocentric latitude = atan2(z0, √(x0² + y0²))
+        # phi_p = math.atan2(z0, math.hypot(x0, y0))
+        # Geodetic latitude
+        phi_p = self._lat0
+        self._ecef_to_ned = self._ecef2neu(phi_p, self._lon0)
         # NED->ECEF is transpose of ECEF->NED but using geodetic latitude
-        self._ned_to_ecef = self._nRe(self._lat0, self._lon0).T
+        self._ned_to_ecef = self._ecef2neu(self._lat0, self._lon0).T
 
         self.have_reference = True
 
@@ -98,6 +100,8 @@ class GeodeticConverter:
         """
         Converts ECEF (m,m,m) to local NED (north, east, down) in meters
         """
+        if not self.have_reference:
+            raise RuntimeError("Reference point not set. Call initialise_reference() first.")
         v = np.array([x, y, z]) - self._ecef0
         ned = self._ecef_to_ned.dot(v)
         return ned[0], ned[1], -ned[2]
@@ -106,6 +110,8 @@ class GeodeticConverter:
         """
         Converts local NED (m) to ECEF (m,m,m)
         """
+        if not self.have_reference:
+            raise RuntimeError("Reference point not set. Call initialise_reference() first.")
         ned = np.array([north, east, -down])
         xyz = self._ned_to_ecef.dot(ned) + self._ecef0
         return float(xyz[0]), float(xyz[1]), float(xyz[2])
@@ -146,9 +152,15 @@ class GeodeticConverter:
         return (deg / 180.0) * math.pi
 
     @staticmethod
-    def _nRe(lat_rad: float, lon_rad: float) -> np.ndarray:
+    def _ecef2neu(lat_rad: float, lon_rad: float) -> np.ndarray:
         """
-        Builds the ECEF→NED rotation matrix for given lat, lon (radians)
+        Builds the ECEF→NEU rotation matrix for given lat, lon (radians)
+        row 0 = North unit‐vector
+        R[0] = [ -sinφ⋅cosλ,  -sinφ⋅sinλ,   cosφ ]
+        row 1 = East unit‐vector
+        R[1] = [   -sinλ,        cosλ,       0  ]
+        row 2 = Up unit‐vector
+        R[2] = [ cosφ⋅cosλ,   cosφ⋅sinλ,   sinφ ]        
         """
         sLat = math.sin(lat_rad)
         cLat = math.cos(lat_rad)
